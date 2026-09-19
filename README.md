@@ -257,6 +257,19 @@ for another location. Follow .agents/skills/constutil/SKILL.md for definition
 and member names, access, exact lookup, and existence checks.
 ```
 
+### Download from the documentation site
+
+The site serves the same maintained skill files as this repository:
+
+- [Skill instructions](https://constutil.patchfork.dev/skills/constutil/SKILL.md)
+- [Codex metadata](https://constutil.patchfork.dev/skills/constutil/agents/openai.yaml)
+- [Complete skill ZIP](https://constutil.patchfork.dev/skills/constutil.zip)
+
+Extract the ZIP into `.agents/skills/` for Codex or `.claude/skills/` for Claude
+Code. It contains a `constutil/` directory. Review the instructions and commit the
+installed skill into your project. Installing the Python package does not install
+or activate the skill automatically.
+
 ### Claude Code
 
 Use the **same** `skills/constutil/` folder; the `SKILL.md` instructions are shared.
@@ -279,6 +292,18 @@ See [Claude Code's skill documentation](https://code.claude.com/docs/en/skills).
 
 The skill has no dependency on a framework or another skill. Keep its version
 aligned with the library version when updating it.
+
+## Documentation for agents
+
+- [llms.txt](https://constutil.patchfork.dev/llms.txt): concise index of documentation,
+  examples, and skill instructions.
+- [index.md](https://constutil.patchfork.dev/index.md): this README as plain Markdown.
+- [llms-full.txt](https://constutil.patchfork.dev/llms-full.txt): the README and shared
+  skill instructions in one text file.
+
+These files and the downloadable skill are generated from the repository on every
+Pages deployment. `llms.txt` is a discovery aid; it does not install skills or make
+an agent follow them automatically.
 
 ## Development
 
@@ -325,13 +350,11 @@ Select **GitHub Actions** under the repository's **Settings → Pages → Build 
 deployment → Source**. The `pages.yml` workflow builds this README and deploys it
 on pushes to `main`, or through a manual workflow run.
 
-For `patchfork/constutil`, the standard address is
-[patchfork.github.io/constutil](https://patchfork.github.io/constutil/).
-The address `constutil.github.io` requires an account or organization named
-`constutil` with a repository named `constutil.github.io`; it cannot be assigned
-as a custom GitHub-owned domain to `patchfork/constutil`. If that account becomes
-available under your control, deploy the generated `site/` contents there and
-update the Documentation URL above in `pyproject.toml`.
+The published site is [constutil.patchfork.dev](https://constutil.patchfork.dev/).
+Its DNS record is `CNAME constutil → patchfork.github.io` (without a repository
+path). The repository's Pages custom-domain setting must also be
+`constutil.patchfork.dev`; this Actions deployment does not use a `CNAME` file.
+HTTPS is managed by GitHub Pages.
 
 See [GitHub's Pages workflow documentation](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages).
 

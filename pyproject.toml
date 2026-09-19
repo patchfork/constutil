@@ -26,7 +26,7 @@ classifiers = [
 
 [project.urls]
 Homepage = "https://github.com/patchfork/constutil"
-Documentation = "https://patchfork.github.io/constutil/"
+Documentation = "https://constutil.patchfork.dev/"
 Repository = "https://github.com/patchfork/constutil"
 Issues = "https://github.com/patchfork/constutil/issues"
 
