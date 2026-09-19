@@ -327,7 +327,7 @@ and website share one source.
 
 ### PyPI
 
-The `publish.yml` workflow runs on a published GitHub release, tests the package
+The `pypi_publish.yml` workflow runs on a published GitHub release, tests the package
 on Python 3.10–3.14, checks types and formatting, verifies that the release tag
 matches the package version, builds a wheel and source distribution, checks their
 metadata, and publishes via PyPI Trusted Publishing. It does not require an API token.
@@ -337,7 +337,7 @@ One-time setup:
 1. Create a GitHub environment named `pypi` in `patchfork/constutil`.
 2. On PyPI, configure a pending publisher for `constutil` (or a trusted publisher
    if you already own the project): owner `patchfork`, repository `constutil`,
-   workflow filename `publish.yml`, environment `pypi`.
+   workflow filename `pypi_publish.yml`, environment `pypi`.
 3. Update `project.version` in `pyproject.toml`, run `uv lock`, and commit the changes.
 4. Publish a GitHub release with a matching tag, for example `v1.0.0`.
 
