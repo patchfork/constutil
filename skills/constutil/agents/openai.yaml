@@ -1,0 +1,6 @@
+interface:
+  display_name: "constutil"
+  short_description: "Group Python constants with constutil conventions"
+  default_prompt: "Use $constutil to define related constants in a constants package and add exact lookups and existence checks."
+policy:
+  allow_implicit_invocation: true
