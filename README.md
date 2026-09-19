@@ -329,9 +329,9 @@ and website share one source.
 
 The `pypi_publish.yml` workflow runs on a published GitHub release, tests the package
 on Python 3.10–3.14, checks types and formatting, verifies that the release tag
-matches the package version, builds a wheel and source distribution, checks their
-metadata, attaches the same wheel and source distribution to the GitHub release,
-and publishes via PyPI Trusted Publishing. It does not require an API token.
+matches the package version, downloads the wheel and source distribution already
+attached to that release, checks their metadata, and publishes those exact files
+via PyPI Trusted Publishing. It does not require an API token.
 
 One-time setup:
 
@@ -339,8 +339,29 @@ One-time setup:
 2. On PyPI, configure a pending publisher for `constutil` (or a trusted publisher
    if you already own the project): owner `patchfork`, repository `constutil`,
    workflow filename `pypi_publish.yml`, environment `pypi`.
-3. Update `project.version` in `pyproject.toml`, run `uv lock`, and commit the changes.
-4. Publish a GitHub release with a matching tag, for example `v1.0.0`.
+
+For each new release:
+
+1. Update `project.version` in `pyproject.toml`, run `uv lock`, and push the changes.
+2. Run **Actions → Prepare GitHub release → Run workflow** on that commit's branch,
+   with the matching tag (for example, `v1.0.1` for version `1.0.1`). The workflow
+   runs CI, builds and checks the packages, creates the tag at the tested commit,
+   and creates a **draft** release with both distributions attached.
+3. Review the draft's notes and downloads, then click **Publish release** in GitHub.
+   That user action triggers `pypi_publish.yml`. The preparation workflow deliberately
+   leaves publication to the user: events created using `GITHUB_TOKEN` do not
+   automatically trigger other workflows.
+
+GitHub releases are immutable after publication. Uploads must happen while the
+release is still a draft; the publish workflow never adds or replaces release
+assets. A preparation attempt for an existing tag fails rather than moving the tag
+or overwriting a release. If a draft's upload failed, attach the checked build
+artifacts to that draft before publishing it.
+
+The original `v1.0.0` release was published without binary attachments and cannot
+be retrofitted. Its packages are available from PyPI; subsequent releases use the
+draft-first process above. Rerunning the historical workflow uses the old workflow
+stored at its tag and cannot apply this fix retroactively.
 
 PyPI project-name availability is decided by PyPI when registering or publishing.
 See [PyPI's Trusted Publishing guide](https://docs.pypi.org/trusted-publishers/).

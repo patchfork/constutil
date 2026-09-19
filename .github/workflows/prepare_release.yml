@@ -1,0 +1,69 @@
+name: Prepare GitHub release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag matching project.version (for example v1.0.1)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: prepare-release-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  test:
+    uses: ./.github/workflows/ci.yml
+  prepare:
+    needs: test
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.sha }}
+      - uses: astral-sh/setup-uv@v10.1.0
+        with:
+          python-version: '3.14'
+      - run: uv sync --locked
+      - name: Verify tag and version
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          uv run python - <<'PY'
+          import os
+          import tomllib
+          from pathlib import Path
+          version = tomllib.loads(Path('pyproject.toml').read_text())['project']['version']
+          if os.environ['RELEASE_TAG'] != f'v{version}':
+              raise SystemExit(f'Release tag must be v{version}')
+          PY
+      - run: uv build
+      - run: uv run twine check dist/*
+      - uses: actions/upload-artifact@v7.0.1
+        with:
+          name: distributions
+          path: dist/
+          if-no-files-found: error
+      - name: Create tag at the tested commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ inputs.tag }}
+          RELEASE_SHA: ${{ github.sha }}
+        run: |
+          gh api "repos/$GH_REPO/git/refs" --method POST \
+            -f "ref=refs/tags/$RELEASE_TAG" -f "sha=$RELEASE_SHA"
+      - name: Create draft with package downloads
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          gh release create "$RELEASE_TAG" dist/* --draft --verify-tag \
+            --title "constutil $RELEASE_TAG" --generate-notes
