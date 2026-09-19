@@ -1,6 +1,7 @@
 """Ordered groups of typed constant definitions."""
 
 from collections.abc import Iterable
+from types import get_original_bases
 from typing import Any, Generic, TypeVar, cast, get_args, get_origin
 
 from .constdef import ConstantMember, IntConstDef, StrConstDef
@@ -24,7 +25,7 @@ class ConstGroup(Generic[MemberT]):
     @classmethod
     def _get_constant_type(cls) -> Any:
         for base in cls.__mro__:
-            for original in base.__dict__.get("__orig_bases__", ()):
+            for original in get_original_bases(base):
                 if get_origin(original) is ConstGroup:
                     return get_args(original)[0]
         raise TypeError("Declare a group as ConstGroup[YourDefinition].")

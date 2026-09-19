@@ -8,13 +8,14 @@ choices or richer records without requiring Python's `enum.Enum`.
 
 ## Installation
 
-Requires **Python 3.10 or newer**.
+Requires **Python 3.12 or newer**.
 
 ```sh
 pip install constutil
 ```
 
-Until the first PyPI release, install directly from GitHub:
+This branch prepares version 1.1.0 (Python 3.12+); PyPI currently provides 1.0.0.
+To use the unreleased changes, install directly from GitHub:
 
 ```sh
 pip install git+https://github.com/patchfork/constutil.git
@@ -200,7 +201,7 @@ arguments at runtime.
 
 ## Python compatibility
 
-The minimum is **Python 3.10**, determined by the features actually used:
+The minimum is **Python 3.12**, determined by the features actually used:
 
 | Feature | Introduced |
 | --- | --- |
@@ -210,6 +211,7 @@ The minimum is **Python 3.10**, determined by the features actually used:
 | Built-in collection annotations such as `tuple[str, ...]` | Python 3.9 |
 | Union annotations such as `MemberT | None` | Python 3.10 |
 | `@dataclass(slots=True)` in optional metadata subclasses | Python 3.10 |
+| `types.get_original_bases()` | Python 3.12 |
 
 The generic base deliberately omits `slots=True`: older Python versions raise a
 `TypeError` when instantiating a frozen, slotted generic alias because `typing`
@@ -217,12 +219,13 @@ tries to assign `__orig_class__`. Frozen definitions without slots work across t
 supported versions. A subclass may use slots, but still inherits the base instance
 dictionary.
 
-Generic discovery uses `__orig_bases__`; it does not need Python 3.12's
-`types.get_original_bases` or PEP 695 type-parameter syntax. The package includes
-`py.typed`. CI tests Python 3.10–3.14. See the official
-[dataclass documentation](https://docs.python.org/3.10/library/dataclasses.html),
-[typing documentation](https://docs.python.org/3.10/library/typing.html), and
-[Python 3.10 changes](https://docs.python.org/3.10/whatsnew/3.10.html).
+Generic discovery uses the public `types.get_original_bases()` API, introduced in
+Python 3.12, to inspect generic bases before type erasure. This sets the minimum
+Python version; no fallback to direct `__orig_bases__` access is needed. The
+package includes `py.typed`, and CI tests Python 3.12–3.14. See the official
+[generic base introspection documentation](https://docs.python.org/3.12/library/types.html#types.get_original_bases).
+
+Version 1.0.0 supports Python 3.10–3.14; version 1.1.0 requires Python 3.12+.
 
 ## Adopt the coding skill (Codex and Claude Code)
 
@@ -231,6 +234,35 @@ The repository includes an opinionated, reusable
 It directs an agent to use `constutil` for related constant values, usually in a
 `constants/` package, and explains naming, access, lookup, and existence checks.
 Installing the Python dependency alone does **not** install the skill.
+
+### Quick installer
+
+From your project's root, download and run the installer:
+
+```sh
+curl -fsSLo install-skills.sh https://constutil.patchfork.dev/install-skills.sh
+sh install-skills.sh both       # Codex and Claude Code
+# Or: sh install-skills.sh codex
+# Or: sh install-skills.sh claude
+```
+
+From a checkout of this repository, run `sh scripts/install-skills.sh both`.
+The installer uses the checkout's skill files when available; the downloaded
+script fetches them from this site. It installs into `.agents/skills/constutil`
+and/or `.claude/skills/constutil` in the current directory. Use `--global` for
+`~/.agents/skills/constutil` and/or `~/.claude/skills/constutil`. Existing skill
+folders are preserved unless you pass `--force` to update the supplied files.
+
+```sh
+sh install-skills.sh both --global
+sh install-skills.sh both --force
+```
+
+The script requires `sh` and standard Unix tools, plus `curl` when downloading.
+It does not change `AGENTS.md` or `CLAUDE.md`; add the project convention below
+if you want the skill's guidance to apply consistently.
+
+### Manual installation
 
 For one project, copy the complete `skills/constutil/` directory from this
 repository to `<your-project>/.agents/skills/constutil/` and commit it. From that
@@ -328,7 +360,7 @@ and website share one source.
 ### PyPI
 
 The `pypi_publish.yml` workflow runs on a published GitHub release, tests the package
-on Python 3.10–3.14, checks types and formatting, verifies that the release tag
+on Python 3.12–3.14, checks types and formatting, verifies that the release tag
 matches the package version, downloads the wheel and source distribution already
 attached to that release, checks their metadata, and publishes those exact files
 via PyPI Trusted Publishing. It does not require an API token.

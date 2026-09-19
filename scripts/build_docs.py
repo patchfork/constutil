@@ -1,7 +1,7 @@
 """Build the GitHub Pages site from the package README."""
 
 from pathlib import Path
-from shutil import copytree, make_archive
+from shutil import copyfile, copytree, make_archive
 
 import markdown
 
@@ -14,6 +14,7 @@ def main() -> None:
     destination = ROOT / "site"
     destination.mkdir(exist_ok=True)
     (destination / ".nojekyll").touch()
+    copyfile(ROOT / "scripts" / "install-skills.sh", destination / "install-skills.sh")
     (destination / "index.md").write_text(readme, encoding="utf-8")
     copytree(
         ROOT / "skills" / "constutil", destination / "skills" / "constutil", dirs_exist_ok=True
@@ -37,7 +38,7 @@ def main() -> None:
     (destination / "llms.txt").write_text(
         """# constutil
 
-> Typed constant definitions and groups for Python 3.10+, with no runtime dependencies.
+> Typed constant definitions and groups for Python 3.12+, with no runtime dependencies.
 
 ConstDef stores a scalar value and display name; ConstGroup provides ordered
 lookup and enumeration. Comparisons use Python equality without coercion or case
@@ -52,6 +53,9 @@ populated groups. The optional skill recommends a constants package layout.
   README and skill instructions together.
 
 ## Skills
+
+- [Installer](https://constutil.patchfork.dev/install-skills.sh):
+  install the shared skill for Codex, Claude Code, or both.
 
 - [constutil skill](https://constutil.patchfork.dev/skills/constutil/SKILL.md):
   shared Codex and Claude Code conventions, lookup, and existence checks.
