@@ -330,7 +330,8 @@ and website share one source.
 The `pypi_publish.yml` workflow runs on a published GitHub release, tests the package
 on Python 3.10–3.14, checks types and formatting, verifies that the release tag
 matches the package version, builds a wheel and source distribution, checks their
-metadata, and publishes via PyPI Trusted Publishing. It does not require an API token.
+metadata, attaches the same wheel and source distribution to the GitHub release,
+and publishes via PyPI Trusted Publishing. It does not require an API token.
 
 One-time setup:
 
