@@ -372,17 +372,27 @@ One-time setup:
    if you already own the project): owner `patchfork`, repository `constutil`,
    workflow filename `pypi_publish.yml`, environment `pypi`.
 
-For each new release:
+#### Trigger a release
 
-1. Update `project.version` in `pyproject.toml`, run `uv lock`, and push the changes.
-2. Run **Actions → Prepare GitHub release → Run workflow** on that commit's branch,
-   with the matching tag (for example, `v1.0.1` for version `1.0.1`). The workflow
-   runs CI, builds and checks the packages, creates the tag at the tested commit,
-   and creates a **draft** release with both distributions attached.
-3. Review the draft's notes and downloads, then click **Publish release** in GitHub.
-   That user action triggers `pypi_publish.yml`. The preparation workflow deliberately
-   leaves publication to the user: events created using `GITHUB_TOKEN` do not
-   automatically trigger other workflows.
+For the prepared **1.1.0** release:
+
+1. Open [Prepare GitHub release](https://github.com/patchfork/constutil/actions/workflows/prepare_release.yml).
+2. Click **Run workflow**, select the `main` branch, enter **`v1.1.0`** as the tag,
+   and start the workflow.
+3. Wait for the workflow to pass CI and create a **draft release** with the wheel
+   and source archive attached.
+4. Open [Releases](https://github.com/patchfork/constutil/releases), review the
+   draft's notes and downloads, and click **Publish release**.
+5. Publishing automatically triggers
+   [Publish to PyPI](https://github.com/patchfork/constutil/actions/workflows/pypi_publish.yml)
+   to upload those exact packages. Check that workflow for the publishing result.
+
+For later releases, first update `project.version` in `pyproject.toml`, run
+`uv lock`, and push the changes. Then repeat these steps with the matching tag:
+version `1.2.0`, for example, uses tag `v1.2.0`.
+
+The preparation workflow deliberately leaves publication to the user: events
+created using `GITHUB_TOKEN` do not automatically trigger other workflows.
 
 GitHub releases are immutable after publication. Uploads must happen while the
 release is still a draft; the publish workflow never adds or replaces release
