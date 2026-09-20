@@ -45,6 +45,30 @@ def test_enumeration_and_default():
 
 
 @pytest.mark.parametrize(
+    "group,expected,value_type",
+    [
+        (Day, [("MONDAY", 1), ("TUESDAY", 2)], int),
+        (Moon, [("TITAN", "titan"), ("RHEA", "rhea")], str),
+    ],
+)
+def test_value_map_preserves_declaration_order_filters_and_value_types(group, expected, value_type):
+    mapping = group.get_value_map()
+    assert isinstance(mapping, dict)
+    assert list(mapping.items()) == expected
+    assert all(type(value) is value_type for value in mapping.values())
+
+
+@pytest.mark.parametrize("group", [Day, Moon])
+def test_value_map_returns_a_fresh_dict(group):
+    original = group.get_value_map()
+    mapping = group.get_value_map()
+    assert mapping is not original
+    mapping.clear()
+    mapping["EXTRA"] = "extra"
+    assert group.get_value_map() == original
+
+
+@pytest.mark.parametrize(
     "value,expected",
     [(1, True), ("1", False), (True, True), (1.0, True), (0, False), (None, False)],
 )

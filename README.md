@@ -98,6 +98,12 @@ class Season(StrConstGroup):
 
 
 assert Season.get_value("Spring") == "spring"
+assert Season.get_value_map() == {
+    "SPRING": "spring",
+    "SUMMER": "summer",
+    "AUTUMN": "autumn",
+    "WINTER": "winter",
+}
 assert Season.is_valid_value("SPRING") is False
 ```
 
@@ -171,6 +177,7 @@ returned as-is and is not required to belong to the group; absent defaults are
 | `get_default()` | Configured member or `None` |
 | `get_all()` | Tuple of members |
 | `get_all_map()` | Fresh attribute-name → member dictionary |
+| `get_value_map()` | Fresh attribute-name → stored-value dictionary, in declaration order |
 | `get_all_values()` | Tuple of stored values |
 | `get_all_names()` | Tuple of display names |
 | `get_all_constant_names()` | Tuple of Python attribute names |

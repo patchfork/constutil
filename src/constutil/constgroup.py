@@ -46,6 +46,21 @@ class ConstGroup(Generic[MemberT]):
         return members
 
     @classmethod
+    def get_value_map(cls) -> dict[str, int | str]:
+        """Return a fresh mapping of constant name to value, in class declaration order.
+
+        Keys are the class attribute names (``"MONDAY"``), the same keys
+        ``get_all_map`` uses; values are each member's ``.value``. Lookups by name go
+        through ``get_by_constant_name``; this is for handing the whole group to an
+        API that wants a plain dict, such as SQLAlchemy's ``naming_convention`` or a
+        JSON payload.
+
+        Returns:
+            A new dict each call, so callers may mutate it freely.
+        """
+        return {key: member.value for key, member in cls.get_all_map().items()}
+
+    @classmethod
     def get_all(cls) -> tuple[MemberT, ...]:
         return tuple(cls.get_all_map().values())
 
