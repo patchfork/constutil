@@ -14,8 +14,7 @@ Requires **Python 3.12 or newer**.
 pip install constutil
 ```
 
-This branch prepares version 1.1.0 (Python 3.12+); PyPI currently provides 1.0.0.
-To use the unreleased changes, install directly from GitHub:
+To use changes not yet published to PyPI, install directly from GitHub:
 
 ```sh
 pip install git+https://github.com/patchfork/constutil.git
@@ -381,11 +380,25 @@ One-time setup:
 
 #### Trigger a release
 
-For the prepared **1.1.0** release:
+First bump the package version from the repository root:
+
+```sh
+sh scripts/bump-version.sh --dry-run patch  # Preview the next patch version
+sh scripts/bump-version.sh patch           # Or: minor, major, or an explicit 1.2.0
+```
+
+The script requires `uv` with the `uv version` command and updates
+`project.version` in `pyproject.toml` and the package entry in `uv.lock`, without
+syncing the environment. Review and commit those changes, then push them to `main`.
+It does not create a commit, tag, or release. Historical version references in
+documentation are left unchanged; review release-specific prose when preparing a
+release.
+
+Then prepare the release:
 
 1. Open [Prepare GitHub release](https://github.com/patchfork/constutil/actions/workflows/prepare_release.yml).
-2. Click **Run workflow**, select the `main` branch, enter **`v1.1.0`** as the tag,
-   and start the workflow.
+2. Click **Run workflow**, select the `main` branch, enter the package version
+   prefixed with `v` as the tag (for example, **`v1.2.0`**), and start the workflow.
 3. Wait for the workflow to pass CI and create a **draft release** with the wheel
    and source archive attached.
 4. Open [Releases](https://github.com/patchfork/constutil/releases), review the
@@ -393,10 +406,6 @@ For the prepared **1.1.0** release:
 5. Publishing automatically triggers
    [Publish to PyPI](https://github.com/patchfork/constutil/actions/workflows/pypi_publish.yml)
    to upload those exact packages. Check that workflow for the publishing result.
-
-For later releases, first update `project.version` in `pyproject.toml`, run
-`uv lock`, and push the changes. Then repeat these steps with the matching tag:
-version `1.2.0`, for example, uses tag `v1.2.0`.
 
 The preparation workflow deliberately leaves publication to the user: events
 created using `GITHUB_TOKEN` do not automatically trigger other workflows.
