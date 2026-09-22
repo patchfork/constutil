@@ -56,11 +56,9 @@ are distinct. `.name` means display text, not the Python attribute name.
 ## Moons of Saturn: additional metadata
 
 ```python
-from dataclasses import dataclass
 from constutil import ConstDef, ConstGroup
 
 
-@dataclass(frozen=True, slots=True)
 class MoonDef(ConstDef[str]):
     discovered_by: str
     discovery_year: int
@@ -78,6 +76,23 @@ assert moon.discovery_year == 1655  # The result retains the MoonDef type.
 assert SaturnMoon.get_all_constant_names() == ("TITAN", "IAPETUS", "RHEA")
 assert SaturnMoon.get_name("TITAN") is None
 ```
+
+Subclasses of `ConstDef` automatically become frozen dataclasses, including their
+new metadata fields. Do not add `@dataclass` to these subclasses: remove existing
+`@dataclass(frozen=True)` or `@dataclass(frozen=True, slots=True)` decorators when
+migrating. Explicit dataclass decorators and automatic slots are unsupported.
+The constructor, equality, representation, and hash include the subclass fields.
+
+For writable definitions, import `MutableConstDef` and derive from
+`MutableConstDef[int]` or `MutableConstDef[str]`. Its subclasses automatically become
+mutable dataclasses, without a decorator. They support the same `value` and `name`
+fields and work with `ConstGroup[YourDefinition]`, but are unhashable by default.
+Definition mutability is independent of group membership mutability.
+
+Both bases advertise their generated constructors and frozen behavior to type
+checkers through `dataclass_transform`. Freezing is shallow: mutable objects stored
+in metadata fields remain mutable; use immutable contents when needed. Normal
+dataclass field ordering applies, including inherited fields with defaults.
 
 ## String constants and custom records
 
@@ -163,8 +178,23 @@ member are allowed. `is_valid()` uses member equality, not identity. With
 `ConstDef`, dataclass equality compares value and name and requires the same
 runtime definition class.
 
-`ConstDef` is a frozen dataclass. Groups are ordinary Python classes:
-their attributes can be reassigned, and enumeration reflects changes immediately.
+`ConstDef` is a frozen dataclass. `ConstGroup` seals all class attributes after
+class creation: adding, replacing, or deleting members, defaults, helpers, and
+other attributes raises `TypeError`. Declare these attributes in the class body.
+This also applies to `IntConstGroup` and `StrConstGroup`.
+
+For groups that need runtime updates, derive from
+`MutableConstGroup[YourDefinition]` instead. Its attributes can be added,
+reassigned, or deleted, and enumeration reflects changes immediately. For example,
+replace `IntConstGroup` with `MutableConstGroup[IntConstDef]` when migrating a
+dynamic group. Both group types expose the same lookup and enumeration methods.
+
+Group freezing protects class attribute bindings, not the contents of member
+objects or other stored objects. `ConstGroup[MutableConstDef[int]]` still permits
+member field changes; `MutableConstGroup[IntConstDef]` permits replacing members
+but its individual definitions remain frozen. As with frozen dataclasses, this
+prevents ordinary mutation rather than deliberate low-level bypasses.
+
 Each enumeration returns a fresh tuple or dictionary. A configured default is
 returned as-is and is not required to belong to the group; absent defaults are
 `None`. Custom mutable records remain mutable.
@@ -216,14 +246,13 @@ The minimum is **Python 3.12**, determined by the features actually used:
 | `typing.Protocol`, `get_args`, `get_origin` | Python 3.8 |
 | Built-in collection annotations such as `tuple[str, ...]` | Python 3.9 |
 | Union annotations such as `MemberT | None` | Python 3.10 |
-| `@dataclass(slots=True)` in optional metadata subclasses | Python 3.10 |
+| `dataclass_transform(frozen_default=...)` | Python 3.12 |
 | `types.get_original_bases()` | Python 3.12 |
 
 The generic base deliberately omits `slots=True`: older Python versions raise a
 `TypeError` when instantiating a frozen, slotted generic alias because `typing`
 tries to assign `__orig_class__`. Frozen definitions without slots work across the
-supported versions. A subclass may use slots, but still inherits the base instance
-dictionary.
+supported versions. Automatically generated subclasses also omit slots.
 
 Generic discovery uses the public `types.get_original_bases()` API, introduced in
 Python 3.12, to inspect generic bases before type erasure. This sets the minimum

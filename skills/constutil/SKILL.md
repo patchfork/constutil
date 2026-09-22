@@ -22,8 +22,14 @@ unrelated existing code as a side effect.
 - Name metadata records `<Domain>Def`, such as `MoonDef`. Reserve `_`-prefixed
   attributes for helpers and defaults; public matching records become members.
 - Import public types from `constutil`. Use `IntConstDef`/`IntConstGroup` or
-  `StrConstDef`/`StrConstGroup` for simple choices. For metadata, derive a frozen
-  dataclass from `ConstDef[int]` or `ConstDef[str]`, then use `ConstGroup[ThatDef]`.
+  `StrConstDef`/`StrConstGroup` for simple choices. For metadata, derive from `ConstDef[int]` or `ConstDef[str]` without a
+  `@dataclass` decorator; subclasses are automatically frozen dataclasses. Then use
+  `ConstGroup[ThatDef]`. Use `MutableConstDef[int]` or `MutableConstDef[str]` only
+  when writable fields are needed; their subclasses are automatically mutable.
+- `ConstGroup` seals all class attributes after creation, including defaults and
+  helpers. Declare them in the class body. Use `MutableConstGroup[YourDef]` only
+  when members or other group attributes must be added, replaced, or deleted at
+  runtime. Group freezing does not freeze the contents of mutable member objects.
 - Use direct generic derivations only. Do not derive one populated group from
   another or build extra generic base layers. Inherited members are not enumerated.
 - Keep scalar values stable: they are the stored or exchanged identifiers. `.name`

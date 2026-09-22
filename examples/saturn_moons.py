@@ -1,12 +1,10 @@
 """Run from the repository root: uv run examples/saturn_moons.py [moon-value]."""
 
 import argparse
-from dataclasses import dataclass
 
 from constutil import ConstDef, ConstGroup
 
 
-@dataclass(frozen=True)
 class MoonDef(ConstDef[str]):
     discovered_by: str
     discovery_year: int

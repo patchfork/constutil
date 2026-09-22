@@ -9,12 +9,30 @@ from .constdef import ConstantMember, IntConstDef, StrConstDef
 MemberT = TypeVar("MemberT", bound=ConstantMember)
 
 
-class ConstGroup(Generic[MemberT]):
-    """Discover public members declared directly on a specialized group class.
+class _FrozenGroupMeta(type):
+    """Seal class attributes after Python has finished constructing the class."""
 
-    Derive from ``ConstGroup[YourDefinition]`` or a specialized alias. Extending
-    populated groups and additional generic inheritance layers are unsupported.
-    """
+    def __new__(
+        mcls, name: str, bases: tuple[type, ...], namespace: dict[str, Any], **kwargs: Any
+    ) -> "_FrozenGroupMeta":
+        namespace = {**namespace, "_constutil_sealed": False}
+        cls = super().__new__(mcls, name, bases, namespace, **kwargs)
+        type.__setattr__(cls, "_constutil_sealed", True)
+        return cls
+
+    def __setattr__(cls, name: str, value: Any) -> None:
+        if cls.__dict__.get("_constutil_sealed", False):
+            raise TypeError(f"{cls.__name__} is frozen; cannot assign {name!r}.")
+        super().__setattr__(name, value)
+
+    def __delattr__(cls, name: str) -> None:
+        if cls.__dict__.get("_constutil_sealed", False):
+            raise TypeError(f"{cls.__name__} is frozen; cannot delete {name!r}.")
+        super().__delattr__(name)
+
+
+class _ConstGroupBase(Generic[MemberT]):
+    """Shared discovery and lookup behavior for frozen and mutable groups."""
 
     _default_constant: MemberT | None = None
 
@@ -26,9 +44,11 @@ class ConstGroup(Generic[MemberT]):
     def _get_constant_type(cls) -> Any:
         for base in cls.__mro__:
             for original in get_original_bases(base):
-                if get_origin(original) is ConstGroup:
+                if get_origin(original) in (ConstGroup, MutableConstGroup):
                     return get_args(original)[0]
-        raise TypeError("Declare a group as ConstGroup[YourDefinition].")
+        raise TypeError(
+            "Declare a group as ConstGroup[YourDefinition] or MutableConstGroup[YourDefinition]."
+        )
 
     @classmethod
     def get_all_map(cls) -> dict[str, MemberT]:
@@ -141,6 +161,19 @@ class ConstGroup(Generic[MemberT]):
     def has_required(cls, values: Iterable[int | str]) -> bool:
         """Check exact set equality, ignoring order and duplicates."""
         return set(values) == set(cls.get_all_values())
+
+
+class ConstGroup(_ConstGroupBase[MemberT], metaclass=_FrozenGroupMeta):
+    """A group whose class attributes cannot change after class creation.
+
+    Derive from ``ConstGroup[YourDefinition]`` or a specialized alias. Extending
+    populated groups and additional generic inheritance layers are unsupported.
+    Member objects retain their own mutability rules.
+    """
+
+
+class MutableConstGroup(_ConstGroupBase[MemberT]):
+    """A group allowing class attribute changes, reflected immediately in lookups."""
 
 
 IntConstGroup = ConstGroup[IntConstDef]

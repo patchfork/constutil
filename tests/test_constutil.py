@@ -5,7 +5,15 @@ from typing import Generic, TypeVar
 
 import pytest
 
-from constutil import ConstDef, ConstGroup, IntConstDef, IntConstGroup, StrConstDef, StrConstGroup
+from constutil import (
+    ConstDef,
+    ConstGroup,
+    IntConstDef,
+    IntConstGroup,
+    MutableConstGroup,
+    StrConstDef,
+    StrConstGroup,
+)
 
 
 class Day(IntConstGroup):
@@ -139,7 +147,6 @@ def test_preserved_helpers():
 
 
 def test_metadata_and_structural_members():
-    @dataclass(frozen=True, slots=True)
     class MoonDef(ConstDef[str]):
         discovery_year: int
 
@@ -163,7 +170,7 @@ def test_metadata_and_structural_members():
 
 
 def test_duplicates_and_changes():
-    class Duplicate(IntConstGroup):
+    class Duplicate(MutableConstGroup[IntConstDef]):
         FIRST = IntConstDef(1, "First")
         ALIAS = FIRST
         SAME_VALUE = IntConstDef(1, "Other")
